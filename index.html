@@ -38,7 +38,7 @@
       display: flex;
     }
     .card {
-      background: rgba(0, 0, 0, 0.65);
+      background: rgba(0, 0, 0, 0.72);
       padding: 30px 40px;
       border-radius: 12px;
       max-width: 650px;
@@ -69,11 +69,10 @@
     button:hover {
       background-color: #e0e0e0;
     }
-    /* Experiment Display Area */
     #arena {
       position: relative;
-      width: 1000px;
-      height: 700px;
+      width: 900px;
+      height: 650px;
       background: #808080;
     }
     #fixation {
@@ -81,18 +80,12 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 40px;
+      font-size: 44px;
       font-weight: bold;
       color: #ffffff;
       display: none;
     }
     #stimulus {
-      position: absolute;
-      display: none;
-      transform: translate(-50%, -50%);
-      color: #ffffff;
-    }
-    #mask {
       position: absolute;
       display: none;
       transform: translate(-50%, -50%);
@@ -109,6 +102,15 @@
     }
     .correct { color: #00ff66; }
     .incorrect { color: #ff3333; }
+    .aborted-badge {
+      display: inline-block;
+      background: #e63946;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
     table {
       margin: 15px auto;
       border-collapse: collapse;
@@ -140,12 +142,13 @@
   <div id="screen-instr-practice" class="screen">
     <div class="card">
       <h3>Instructions: Practice Session</h3>
-      <p>Look at the central fixation cross (+) when it appears.</p>
-      <p>A large letter made up of smaller letters will briefly flash in one of the quadrants.</p>
-      <p><strong>Your goal is to identify the SMALL (LOCAL) letter:</strong></p>
-      <p>Press <strong>[ H ]</strong> if the small letters are H<br>
-         Press <strong>[ S ]</strong> if the small letters are S</p>
+      <p>Look at the central fixation cross (<strong>+</strong>) when it appears.</p>
+      <p>A large letter made up of smaller letters will appear on the screen.</p>
+      <p><strong>Identify the SMALL (LOCAL) letter:</strong></p>
+      <p>Press <strong>[ H ]</strong> if the small letters are <strong>H</strong><br>
+         Press <strong>[ S ]</strong> if the small letters are <strong>S</strong></p>
       <p>Respond as quickly and accurately as possible.</p>
+      <p style="font-size: 14px; opacity: 0.8;">(You can press <strong>Esc</strong> anytime to terminate the task and save your data.)</p>
       <p style="color: #ffff99;">Press <strong>SPACEBAR</strong> to begin the 16 practice trials.</p>
     </div>
   </div>
@@ -158,6 +161,7 @@
       <p>Remember: Identify the <strong>SMALL (LOCAL)</strong> letter:</p>
       <p>Press <strong>[ H ]</strong> for small H<br>
          Press <strong>[ S ]</strong> for small S</p>
+      <p style="font-size: 14px; opacity: 0.8;">(Press <strong>Esc</strong> anytime to end early and save data.)</p>
       <p style="color: #ffff99;">Press <strong>SPACEBAR</strong> to begin.</p>
     </div>
   </div>
@@ -167,7 +171,6 @@
     <div id="arena">
       <div id="fixation">+</div>
       <div id="stimulus"></div>
-      <div id="mask"></div>
       <div id="feedback"></div>
     </div>
   </div>
@@ -175,15 +178,15 @@
   <!-- Screen 5: Results & CSV Download -->
   <div id="screen-results" class="screen">
     <div class="card" style="max-width: 750px;">
-      <h2>Task Completed!</h2>
-      <p>Thank you for participating. Your data has been recorded.</p>
+      <div id="status-tag"></div>
+      <h2>Task Results</h2>
       <div id="results-summary"></div>
-      <button onclick="downloadCSV()">Download PsychoPy CSV Again</button>
+      <button onclick="downloadCSV()">Download PsychoPy CSV</button>
     </div>
   </div>
 
   <script>
-    // --- Stimulus Patterns (H and S grid maps 7x5) ---
+    // Stimulus letter matrix definitions (7 rows x 5 columns)
     const PATTERNS = {
       'H': [
         [1, 0, 0, 0, 1],
@@ -202,27 +205,18 @@
         [0, 0, 0, 0, 1],
         [0, 0, 0, 0, 1],
         [1, 1, 1, 1, 1]
-      ],
-      'MASK': [
-        [1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1]
       ]
     };
 
     function generateNavonSVG(globalLetter, localLetter) {
       const grid = PATTERNS[globalLetter];
-      let svg = `<svg width="120" height="150" viewBox="0 0 120 150">`;
+      let svg = `<svg width="150" height="190" viewBox="0 0 150 190">`;
       for (let r = 0; r < 7; r++) {
         for (let c = 0; c < 5; c++) {
           if (grid[r][c] === 1) {
-            const x = c * 25 + 10;
-            const y = r * 22 + 18;
-            svg += `<text x="${x}" y="${y}" fill="#ffffff" font-size="16" font-family="Arial" font-weight="bold" text-anchor="middle" dominant-baseline="central">${localLetter}</text>`;
+            const x = c * 30 + 15;
+            const y = r * 28 + 20;
+            svg += `<text x="${x}" y="${y}" fill="#ffffff" font-size="22" font-family="Arial" font-weight="bold" text-anchor="middle" dominant-baseline="central">${localLetter.toUpperCase()}</text>`;
           }
         }
       }
@@ -231,10 +225,10 @@
     }
 
     const QUADRANTS = [
-      { location: 'up_left', xPos: -200, yPos: 200 },
-      { location: 'up_right', xPos: 200, yPos: 200 },
-      { location: 'down_left', xPos: -200, yPos: -200 },
-      { location: 'down_right', xPos: 200, yPos: -200 }
+      { location: 'up_left', xPos: -220, yPos: 160 },
+      { location: 'up_right', xPos: 220, yPos: 160 },
+      { location: 'down_left', xPos: -220, yPos: -160 },
+      { location: 'down_right', xPos: 220, yPos: -160 }
     ];
 
     const STIMULI_TYPES = [
@@ -244,21 +238,23 @@
       { stimFile: 'bigSsmallH.png', global: 'S', local: 'h', congruence: 'conflicting', corrAns: 'h' }
     ];
 
-    // --- State Variables ---
     let participant = "anonymous";
     let age = 20;
     let session = 1;
-    let expStartIso = "";
     let dateStr = "";
     let practiceTrialsList = [];
     let mainTrialsList = [];
-    let currentPhase = ""; // "practice" or "main"
+    let currentPhase = "";
     let trialIndex = 0;
     let rawResults = [];
     let acceptingResponse = false;
     let stimulusPresentedTime = 0;
     let activeTrialData = null;
-    let maskTimeout = null;
+    let timerFixation = null;
+    let timerTimeout = null;
+    let timerFeedback = null;
+    let timerNext = null;
+    let experimentAborted = false;
 
     function shuffle(arr) {
       return arr.map(a => [Math.random(), a]).sort((a, b) => a[0] - b[0]).map(a => a[1]);
@@ -291,12 +287,9 @@
 
       const now = new Date();
       dateStr = now.toISOString().replace(/T/, '_').replace(/:/g, 'h').substring(0, 19);
-      expStartIso = now.toISOString();
 
-      // 16 practice trials (1 rep across 4 stimuli x 4 quadrants)
-      practiceTrialsList = createTrialList(1);
-      // 64 main trials (4 reps across 4 stimuli x 4 quadrants)
-      mainTrialsList = createTrialList(4);
+      practiceTrialsList = createTrialList(1); // 16 trials
+      mainTrialsList = createTrialList(4);     // 64 trials
 
       document.getElementById('screen-info').classList.remove('active');
       document.getElementById('screen-instr-practice').classList.add('active');
@@ -305,9 +298,15 @@
     }
 
     function handleGlobalKey(e) {
+      // Escape key abort handler (PsychoPy behavior)
+      if (e.key === "Escape" || e.code === "Escape") {
+        e.preventDefault();
+        abortExperiment();
+        return;
+      }
+
       const key = e.key.toLowerCase();
 
-      // Spacebar transitions
       if (document.getElementById('screen-instr-practice').classList.contains('active')) {
         if (e.code === "Space") {
           document.getElementById('screen-instr-practice').classList.remove('active');
@@ -330,7 +329,6 @@
         return;
       }
 
-      // Experiment Keys ('h' or 's')
       if (acceptingResponse && (key === 'h' || key === 's')) {
         acceptingResponse = false;
         const rt = (performance.now() - stimulusPresentedTime) / 1000.0;
@@ -346,7 +344,7 @@
           document.getElementById('screen-task').classList.remove('active');
           document.getElementById('screen-instr-main').classList.add('active');
         } else {
-          finishExperiment();
+          finishExperiment(false);
         }
         return;
       }
@@ -354,23 +352,20 @@
       activeTrialData = trialList[trialIndex];
       const fixationEl = document.getElementById('fixation');
       const stimEl = document.getElementById('stimulus');
-      const maskEl = document.getElementById('mask');
       const fbEl = document.getElementById('feedback');
 
       stimEl.style.display = 'none';
-      maskEl.style.display = 'none';
       fbEl.style.display = 'none';
 
-      // 1. Show Fixation cross for 1000 ms
+      // 1. Central Fixation (+) for 1000 ms
       fixationEl.style.display = 'block';
 
-      setTimeout(() => {
+      timerFixation = setTimeout(() => {
         fixationEl.style.display = 'none';
 
-        // 2. Position and render stimulus
-        // Standard PsychoPy mapping: center is (500, 350)
-        const posX = 500 + activeTrialData.xPos;
-        const posY = 350 - activeTrialData.yPos; // inverted Y
+        // 2. Display Target
+        const posX = 450 + activeTrialData.xPos;
+        const posY = 325 - activeTrialData.yPos;
 
         stimEl.innerHTML = generateNavonSVG(activeTrialData.global, activeTrialData.local);
         stimEl.style.left = posX + 'px';
@@ -380,19 +375,8 @@
         stimulusPresentedTime = performance.now();
         acceptingResponse = true;
 
-        // 3. PsychoPy built-in timing: Stimulus visible for 200 ms, then replaced by Mask (#)
-        setTimeout(() => {
-          if (acceptingResponse) {
-            stimEl.style.display = 'none';
-            maskEl.innerHTML = generateNavonSVG('MASK', '#');
-            maskEl.style.left = posX + 'px';
-            maskEl.style.top = posY + 'px';
-            maskEl.style.display = 'block';
-          }
-        }, 200);
-
-        // 4. Response timeout after 5.0 seconds
-        maskTimeout = setTimeout(() => {
+        // 3. Max Response Timeout (5 seconds)
+        timerTimeout = setTimeout(() => {
           if (acceptingResponse) {
             acceptingResponse = false;
             recordResponse(null, 5.0);
@@ -403,9 +387,8 @@
     }
 
     function recordResponse(key, rt) {
-      clearTimeout(maskTimeout);
+      clearTimeout(timerTimeout);
       document.getElementById('stimulus').style.display = 'none';
-      document.getElementById('mask').style.display = 'none';
 
       const isCorr = (key === activeTrialData.corrAns) ? 1.0 : 0.0;
 
@@ -424,33 +407,52 @@
       };
       rawResults.push(record);
 
-      // Show immediate feedback during practice, exactly like PsychoPy
       if (currentPhase === "practice") {
         const fb = document.getElementById('feedback');
         fb.innerText = isCorr ? "Correct!" : "Incorrect";
         fb.className = isCorr ? "correct" : "incorrect";
         fb.style.display = 'block';
 
-        setTimeout(() => {
+        timerFeedback = setTimeout(() => {
           fb.style.display = 'none';
           trialIndex++;
-          setTimeout(runNextTrial, 500);
-        }, 1000);
+          timerNext = setTimeout(runNextTrial, 400);
+        }, 800);
       } else {
-        // Main trials have a brief 300ms inter-trial interval without feedback
         trialIndex++;
-        setTimeout(runNextTrial, 300);
+        timerNext = setTimeout(runNextTrial, 300);
       }
     }
 
-    function finishExperiment() {
-      document.getElementById('screen-task').classList.remove('active');
+    function abortExperiment() {
+      // Clear all possible running timeouts immediately
+      clearTimeout(timerFixation);
+      clearTimeout(timerTimeout);
+      clearTimeout(timerFeedback);
+      clearTimeout(timerNext);
+
+      acceptingResponse = false;
+      experimentAborted = true;
+
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      finishExperiment(true);
+    }
+
+    function finishExperiment(wasAborted = false) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('screen-results').classList.add('active');
+
+      const statusTag = document.getElementById('status-tag');
+      if (wasAborted) {
+        statusTag.innerHTML = `<span class="aborted-badge">Terminated Early (Esc Key Pressed)</span>`;
+      } else {
+        statusTag.innerHTML = `<span style="color: #00ff66; font-weight: bold; font-size: 18px;">Experiment Completed Successfully</span>`;
+      }
 
       const mainData = rawResults.filter(r => r.phase === 'main');
       const totalMain = mainData.length;
       const correctMain = mainData.filter(r => r.corr === 1.0);
-      const overallAcc = (correctMain.length / totalMain) * 100;
+      const overallAcc = totalMain > 0 ? ((correctMain.length / totalMain) * 100) : 0;
 
       const congCorrect = mainData.filter(r => r.congruence === 'consistent' && r.corr === 1.0);
       const confCorrect = mainData.filter(r => r.congruence === 'conflicting' && r.corr === 1.0);
@@ -459,15 +461,19 @@
       const meanConfRT = confCorrect.length ? (confCorrect.reduce((acc, c) => acc + c.rt, 0) / confCorrect.length * 1000) : 0;
       const interference = meanConfRT - meanCongRT;
 
-      const congAcc = (mainData.filter(r => r.congruence === 'consistent' && r.corr === 1.0).length / 32) * 100;
-      const confAcc = (mainData.filter(r => r.congruence === 'conflicting' && r.corr === 1.0).length / 32) * 100;
+      const congCount = mainData.filter(r => r.congruence === 'consistent').length;
+      const confCount = mainData.filter(r => r.congruence === 'conflicting').length;
+
+      const congAcc = congCount > 0 ? (congCorrect.length / congCount * 100) : 0;
+      const confAcc = confCount > 0 ? (confCorrect.length / confCount * 100) : 0;
 
       document.getElementById('results-summary').innerHTML = `
-        <p><strong>Participant:</strong> ${participant} | <strong>Age:</strong> ${age}</p>
+        <p><strong>Participant:</strong> ${participant} | <strong>Age:</strong> ${age} | <strong>Total Trials Completed:</strong> ${rawResults.length}</p>
         <table>
           <thead>
             <tr>
               <th>Condition</th>
+              <th>Completed Trials</th>
               <th>Accuracy (%)</th>
               <th>Mean RT (Correct)</th>
             </tr>
@@ -475,30 +481,37 @@
           <tbody>
             <tr>
               <td><strong>Consistent (Congruent)</strong></td>
+              <td>${congCount}</td>
               <td>${congAcc.toFixed(1)}%</td>
               <td>${meanCongRT.toFixed(1)} ms</td>
             </tr>
             <tr>
               <td><strong>Conflicting (Incongruent)</strong></td>
+              <td>${confCount}</td>
               <td>${confAcc.toFixed(1)}%</td>
               <td>${meanConfRT.toFixed(1)} ms</td>
             </tr>
             <tr>
-              <td><strong>Overall</strong></td>
+              <td><strong>Main Task Overall</strong></td>
+              <td>${totalMain}</td>
               <td>${overallAcc.toFixed(1)}%</td>
-              <td>${((meanCongRT + meanConfRT)/2).toFixed(1)} ms</td>
+              <td>${totalMain > 0 ? ((meanCongRT + meanConfRT)/2).toFixed(1) : 0} ms</td>
             </tr>
           </tbody>
         </table>
-        <p><strong>Calculated Interference Effect:</strong> +${interference.toFixed(1)} ms</p>
+        <p><strong>Calculated Interference Effect:</strong> ${totalMain > 0 ? (interference >= 0 ? '+' : '') + interference.toFixed(1) + ' ms' : 'N/A'}</p>
       `;
 
-      // Trigger automatic PsychoPy-compliant CSV download
+      // Auto-trigger CSV download (even if aborted early)
       downloadCSV();
     }
 
     function downloadCSV() {
-      // Header format mirroring PsychoPy
+      if (rawResults.length === 0) {
+        alert("No trials were completed before exit; no data to download.");
+        return;
+      }
+
       const headers = [
         "stimFile", "congruence", "corrAns", "xPos", "yPos", "location",
         "resp.keys", "resp.corr", "resp.rt",
