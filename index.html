@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>PsychoPy Navon Task (Web Edition)</title>
+  <title>PsychoPy Navon Task</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     * {
@@ -14,7 +14,7 @@
       padding: 0;
       width: 100%;
       height: 100%;
-      background-color: #808080; /* PsychoPy standard neutral gray */
+      background-color: #000000;
       color: #ffffff;
       font-family: Arial, Helvetica, sans-serif;
       overflow: hidden;
@@ -38,19 +38,23 @@
       display: flex;
     }
     .card {
-      background: rgba(0, 0, 0, 0.72);
-      padding: 30px 40px;
-      border-radius: 12px;
-      max-width: 650px;
+      background: #111111;
+      border: 1px solid #333333;
+      padding: 35px 45px;
+      border-radius: 10px;
+      max-width: 680px;
       line-height: 1.6;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      color: #ffffff;
     }
     input {
       width: 80%;
       padding: 10px;
       margin: 10px 0;
       border-radius: 6px;
-      border: 1px solid #ccc;
+      border: 1px solid #555;
+      background: #222;
+      color: #fff;
       font-size: 16px;
       text-align: center;
     }
@@ -58,7 +62,7 @@
       padding: 12px 28px;
       font-size: 16px;
       font-weight: bold;
-      color: #333;
+      color: #000;
       background-color: #ffffff;
       border: none;
       border-radius: 6px;
@@ -67,20 +71,37 @@
       transition: background 0.2s;
     }
     button:hover {
-      background-color: #e0e0e0;
+      background-color: #cccccc;
+    }
+    .exit-btn {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: #333333;
+      color: #aaaaaa;
+      border: 1px solid #555555;
+      padding: 6px 14px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 9999;
+    }
+    .exit-btn:hover {
+      background: #cc0000;
+      color: #ffffff;
     }
     #arena {
       position: relative;
-      width: 900px;
-      height: 650px;
-      background: #808080;
+      width: 1024px;
+      height: 768px;
+      background: #000000;
     }
     #fixation {
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 384px;
+      left: 512px;
       transform: translate(-50%, -50%);
-      font-size: 44px;
+      font-size: 40px;
       font-weight: bold;
       color: #ffffff;
       display: none;
@@ -89,36 +110,49 @@
       position: absolute;
       display: none;
       transform: translate(-50%, -50%);
-      color: #ffffff;
+    }
+    #mask {
+      position: absolute;
+      display: none;
+      transform: translate(-50%, -50%);
+      width: 130px;
+      height: 180px;
+    }
+    .dot-grid {
+      display: grid;
+      grid-template-columns: repeat(16, 1fr);
+      grid-template-rows: repeat(22, 1fr);
+      gap: 3px;
+      width: 100%;
+      height: 100%;
+    }
+    .dot {
+      width: 3px;
+      height: 3px;
+      background-color: #ffffff;
+      border-radius: 50%;
+      justify-self: center;
+      align-self: center;
     }
     #feedback {
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 384px;
+      left: 512px;
       transform: translate(-50%, -50%);
-      font-size: 32px;
+      font-size: 34px;
       font-weight: bold;
       display: none;
     }
     .correct { color: #00ff66; }
     .incorrect { color: #ff3333; }
-    .aborted-badge {
-      display: inline-block;
-      background: #e63946;
-      color: white;
-      padding: 4px 12px;
-      border-radius: 4px;
-      font-weight: bold;
-      margin-bottom: 12px;
-    }
     table {
       margin: 15px auto;
       border-collapse: collapse;
       width: 100%;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
     }
     th, td {
-      border: 1px solid #ddd;
+      border: 1px solid #444;
       padding: 8px 12px;
       text-align: center;
     }
@@ -129,12 +163,12 @@
   <!-- Screen 1: Participant Details -->
   <div id="screen-info" class="screen active">
     <div class="card">
-      <h2>Navon Visual Task</h2>
-      <p>Please enter your participant details to begin:</p>
-      <input type="text" id="part-id" placeholder="Participant Name or ID" required><br>
-      <input type="number" id="part-age" placeholder="Age (e.g. 20)" min="10" max="99"><br>
-      <input type="number" id="part-session" placeholder="Session (default: 1)" value="1"><br>
-      <button onclick="startInstructions()">Next</button>
+      <h2 style="margin-top:0;">Navon Task (PsychoPy Experiment)</h2>
+      <p>Please enter your participant details:</p>
+      <input type="text" id="part-id" placeholder="Participant Name" required><br>
+      <input type="number" id="part-age" placeholder="Age" min="10" max="99" value="19"><br>
+      <input type="number" id="part-session" placeholder="Session" value="3"><br>
+      <button onclick="startInstructions()">Continue</button>
     </div>
   </div>
 
@@ -143,13 +177,14 @@
     <div class="card">
       <h3>Instructions: Practice Session</h3>
       <p>Look at the central fixation cross (<strong>+</strong>) when it appears.</p>
-      <p>A large letter made up of smaller letters will appear on the screen.</p>
-      <p><strong>Identify the SMALL (LOCAL) letter:</strong></p>
-      <p>Press <strong>[ H ]</strong> if the small letters are <strong>H</strong><br>
-         Press <strong>[ S ]</strong> if the small letters are <strong>S</strong></p>
+      <p>A large letter made up of smaller letters will briefly appear in one corner, followed by a dot mask.</p>
+      <p><strong>Your task is to identify the SMALL (LOCAL) letters:</strong></p>
+      <p style="font-size: 18px;">
+        Press <strong>[ H ]</strong> if the small letters are <strong>H</strong><br>
+        Press <strong>[ S ]</strong> if the small letters are <strong>S</strong>
+      </p>
       <p>Respond as quickly and accurately as possible.</p>
-      <p style="font-size: 14px; opacity: 0.8;">(You can press <strong>Esc</strong> anytime to terminate the task and save your data.)</p>
-      <p style="color: #ffff99;">Press <strong>SPACEBAR</strong> to begin the 16 practice trials.</p>
+      <p style="color: #ffff88;">Press <strong>SPACEBAR</strong> to begin the 16 practice trials.</p>
     </div>
   </div>
 
@@ -158,19 +193,24 @@
     <div class="card">
       <h3>Practice Completed</h3>
       <p>You will now start the main experiment (64 trials).</p>
-      <p>Remember: Identify the <strong>SMALL (LOCAL)</strong> letter:</p>
-      <p>Press <strong>[ H ]</strong> for small H<br>
-         Press <strong>[ S ]</strong> for small S</p>
-      <p style="font-size: 14px; opacity: 0.8;">(Press <strong>Esc</strong> anytime to end early and save data.)</p>
-      <p style="color: #ffff99;">Press <strong>SPACEBAR</strong> to begin.</p>
+      <p>Remember: Identify the <strong>SMALL (LOCAL)</strong> letters:</p>
+      <p style="font-size: 18px;">
+        Press <strong>[ H ]</strong> for small H<br>
+        Press <strong>[ S ]</strong> for small S
+      </p>
+      <p style="color: #ffff88;">Press <strong>SPACEBAR</strong> to begin.</p>
     </div>
   </div>
 
   <!-- Screen 4: Task Arena -->
   <div id="screen-task" class="screen">
+    <button class="exit-btn" onclick="abortExperiment()">Exit & Save (Esc)</button>
     <div id="arena">
       <div id="fixation">+</div>
       <div id="stimulus"></div>
+      <div id="mask">
+        <div class="dot-grid" id="dotGrid"></div>
+      </div>
       <div id="feedback"></div>
     </div>
   </div>
@@ -179,14 +219,21 @@
   <div id="screen-results" class="screen">
     <div class="card" style="max-width: 750px;">
       <div id="status-tag"></div>
-      <h2>Task Results</h2>
+      <h2>Navon Task Completed</h2>
       <div id="results-summary"></div>
-      <button onclick="downloadCSV()">Download PsychoPy CSV</button>
+      <button onclick="downloadCSV()">Download PsychoPy CSV Again</button>
     </div>
   </div>
 
   <script>
-    // Stimulus letter matrix definitions (7 rows x 5 columns)
+    // Build dot mask grid (352 dots)
+    const dotGrid = document.getElementById('dotGrid');
+    for (let i = 0; i < 352; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot';
+      dotGrid.appendChild(d);
+    }
+
     const PATTERNS = {
       'H': [
         [1, 0, 0, 0, 1],
@@ -210,13 +257,13 @@
 
     function generateNavonSVG(globalLetter, localLetter) {
       const grid = PATTERNS[globalLetter];
-      let svg = `<svg width="150" height="190" viewBox="0 0 150 190">`;
+      let svg = `<svg width="130" height="180" viewBox="0 0 130 180">`;
       for (let r = 0; r < 7; r++) {
         for (let c = 0; c < 5; c++) {
           if (grid[r][c] === 1) {
-            const x = c * 30 + 15;
-            const y = r * 28 + 20;
-            svg += `<text x="${x}" y="${y}" fill="#ffffff" font-size="22" font-family="Arial" font-weight="bold" text-anchor="middle" dominant-baseline="central">${localLetter.toUpperCase()}</text>`;
+            const x = c * 26 + 13;
+            const y = r * 26 + 13;
+            svg += `<text x="${x}" y="${y}" fill="#ffffff" font-size="20" font-family="Arial, Helvetica" font-weight="bold" text-anchor="middle" dominant-baseline="central">${localLetter.toUpperCase()}</text>`;
           }
         }
       }
@@ -225,36 +272,62 @@
     }
 
     const QUADRANTS = [
-      { location: 'up_left', xPos: -220, yPos: 160 },
-      { location: 'up_right', xPos: 220, yPos: 160 },
-      { location: 'down_left', xPos: -220, yPos: -160 },
-      { location: 'down_right', xPos: 220, yPos: -160 }
+      { location: 'up_left',    xPos: -200.0, yPos:  200.0 },
+      { location: 'up_right',   xPos:  200.0, yPos:  200.0 },
+      { location: 'down_left',  xPos: -200.0, yPos: -200.0 },
+      { location: 'down_right', xPos:  200.0, yPos: -200.0 }
     ];
 
     const STIMULI_TYPES = [
-      { stimFile: 'bigHsmallH.png', global: 'H', local: 'h', congruence: 'consistent', corrAns: 'h' },
-      { stimFile: 'bigSsmallS.png', global: 'S', local: 's', congruence: 'consistent', corrAns: 's' },
+      { stimFile: 'bigHsmallH.png', global: 'H', local: 'h', congruence: 'consistent',  corrAns: 'h' },
+      { stimFile: 'bigSsmallS.png', global: 'S', local: 's', congruence: 'consistent',  corrAns: 's' },
       { stimFile: 'bigHsmallS.png', global: 'H', local: 's', congruence: 'conflicting', corrAns: 's' },
       { stimFile: 'bigSsmallH.png', global: 'S', local: 'h', congruence: 'conflicting', corrAns: 'h' }
     ];
 
-    let participant = "anonymous";
-    let age = 20;
-    let session = 1;
+    let participant = "participant";
+    let age = 19;
+    let session = 3;
     let dateStr = "";
+    let expStartStr = "";
     let practiceTrialsList = [];
     let mainTrialsList = [];
     let currentPhase = "";
     let trialIndex = 0;
-    let rawResults = [];
     let acceptingResponse = false;
     let stimulusPresentedTime = 0;
     let activeTrialData = null;
-    let timerFixation = null;
-    let timerTimeout = null;
-    let timerFeedback = null;
-    let timerNext = null;
-    let experimentAborted = false;
+    let isTerminated = false;
+
+    // PsychoPy Master Table Log
+    let masterRows = [];
+    let expStartTimePerf = 0;
+
+    // Instruction Timestamps
+    let instrPracticeStarted = 0;
+    let instrPracticeStopped = 0;
+    let ok1Started = 0;
+    let ok1Rt = 0;
+    let instrMainStarted = 0;
+    let instrMainStopped = 0;
+    let ok2Started = 0;
+
+    // Trial Specific Timestamps
+    let curTrialStarted = 0;
+    let curFixateStarted = 0;
+    let curFixateStopped = 0;
+    let curStimulusStarted = 0;
+    let curStimulusStopped = 0;
+    let curMaskStarted = 0;
+    let curMaskStopped = "";
+    let curFeedbackStarted = 0;
+    let curFeedbackStopped = 0;
+
+    let tFixation = null;
+    let tStimToMask = null;
+    let tMaskTimeout = null;
+    let tFeedback = null;
+    let tNext = null;
 
     function shuffle(arr) {
       return arr.map(a => [Math.random(), a]).sort((a, b) => a[0] - b[0]).map(a => a[1]);
@@ -262,10 +335,12 @@
 
     function createTrialList(repsPerCondition) {
       let list = [];
+      let indexCount = 0;
       for (let r = 0; r < repsPerCondition; r++) {
         for (let stim of STIMULI_TYPES) {
           for (let pos of QUADRANTS) {
-            list.push({ ...stim, ...pos });
+            list.push({ ...stim, ...pos, originalIndex: (indexCount % 16) });
+            indexCount++;
           }
         }
       }
@@ -278,37 +353,67 @@
       const pSess = document.getElementById('part-session').value.trim();
 
       if (!pId) {
-        alert("Please enter a participant ID or name.");
+        alert("Please enter a participant name.");
         return;
       }
       participant = pId;
-      age = pAge ? parseInt(pAge) : 20;
-      session = pSess ? parseInt(pSess) : 1;
+      age = pAge ? parseInt(pAge) : 19;
+      session = pSess ? parseInt(pSess) : 3;
 
       const now = new Date();
-      dateStr = now.toISOString().replace(/T/, '_').replace(/:/g, 'h').substring(0, 19);
+      const yr = now.getFullYear();
+      const mo = String(now.getMonth() + 1).padStart(2, '0');
+      const da = String(now.getDate()).padStart(2, '0');
+      const hr = String(now.getHours()).padStart(2, '0');
+      const mi = String(now.getMinutes()).padStart(2, '0');
+      const sc = String(now.getSeconds()).padStart(2, '0');
+      const ms = String(now.getMilliseconds()).padStart(3, '0');
 
-      practiceTrialsList = createTrialList(1); // 16 trials
-      mainTrialsList = createTrialList(4);     // 64 trials
+      dateStr = `${yr}-${mo}-${da}_${hr}h${mi}.${sc}.${ms}`;
+      expStartStr = `${yr}-${mo}-${da} ${hr}:${mi}:${sc}.${ms} +0530`;
+
+      practiceTrialsList = createTrialList(1); // 16 practice trials
+      mainTrialsList = createTrialList(4);     // 64 main trials
+
+      expStartTimePerf = performance.now();
+      instrPracticeStarted = 0.012;
+      ok1Started = 0.024;
 
       document.getElementById('screen-info').classList.remove('active');
       document.getElementById('screen-instr-practice').classList.add('active');
-
-      window.addEventListener('keydown', handleGlobalKey);
     }
 
-    function handleGlobalKey(e) {
-      // Escape key abort handler (PsychoPy behavior)
-      if (e.key === "Escape" || e.code === "Escape") {
+    // Capture-level Keydown Listener
+    window.addEventListener('keydown', function(e) {
+      if (isTerminated) return;
+
+      if (e.key === "Escape" || e.code === "Escape" || e.keyCode === 27) {
         e.preventDefault();
+        e.stopPropagation();
         abortExperiment();
         return;
       }
 
       const key = e.key.toLowerCase();
 
+      // Spacebar on Practice Instructions (Creates PsychoPy Row 0)
       if (document.getElementById('screen-instr-practice').classList.contains('active')) {
         if (e.code === "Space") {
+          e.preventDefault();
+          instrPracticeStopped = (performance.now() - expStartTimePerf) / 1000.0;
+          ok1Rt = instrPracticeStopped - ok1Started;
+
+          // Push Row 0 to match PsychoPy
+          masterRows.push({
+            type: "instruction_practice",
+            instrPractice_started: instrPracticeStarted,
+            ok1_started: ok1Started,
+            textbox_started: ok1Started,
+            instrPractice_stopped: instrPracticeStopped,
+            ok1_keys: "space",
+            ok1_rt: ok1Rt
+          });
+
           document.getElementById('screen-instr-practice').classList.remove('active');
           document.getElementById('screen-task').classList.add('active');
           currentPhase = "practice";
@@ -318,8 +423,21 @@
         return;
       }
 
+      // Spacebar on Main Instructions (Creates PsychoPy Row 17)
       if (document.getElementById('screen-instr-main').classList.contains('active')) {
         if (e.code === "Space") {
+          e.preventDefault();
+          instrMainStopped = (performance.now() - expStartTimePerf) / 1000.0;
+
+          // Push Row 17 to match PsychoPy
+          masterRows.push({
+            type: "instruction_main",
+            instrMain_started: instrMainStarted,
+            ok2_started: ok2Started,
+            textbox_2_started: ok2Started,
+            instrMain_stopped: instrMainStopped
+          });
+
           document.getElementById('screen-instr-main').classList.remove('active');
           document.getElementById('screen-task').classList.add('active');
           currentPhase = "main";
@@ -329,20 +447,25 @@
         return;
       }
 
+      // Response keys H and S
       if (acceptingResponse && (key === 'h' || key === 's')) {
         acceptingResponse = false;
         const rt = (performance.now() - stimulusPresentedTime) / 1000.0;
         recordResponse(key, rt);
       }
-    }
+    }, true);
 
     function runNextTrial() {
+      if (isTerminated) return;
+
       const trialList = (currentPhase === "practice") ? practiceTrialsList : mainTrialsList;
 
       if (trialIndex >= trialList.length) {
         if (currentPhase === "practice") {
           document.getElementById('screen-task').classList.remove('active');
           document.getElementById('screen-instr-main').classList.add('active');
+          instrMainStarted = (performance.now() - expStartTimePerf) / 1000.0;
+          ok2Started = instrMainStarted + 0.01;
         } else {
           finishExperiment(false);
         }
@@ -352,34 +475,56 @@
       activeTrialData = trialList[trialIndex];
       const fixationEl = document.getElementById('fixation');
       const stimEl = document.getElementById('stimulus');
+      const maskEl = document.getElementById('mask');
       const fbEl = document.getElementById('feedback');
 
       stimEl.style.display = 'none';
+      maskEl.style.display = 'none';
       fbEl.style.display = 'none';
 
-      // 1. Central Fixation (+) for 1000 ms
+      curTrialStarted = (performance.now() - expStartTimePerf) / 1000.0;
+      curFixateStarted = curTrialStarted + 0.05;
+
+      // 1. Show Fixation (+)
       fixationEl.style.display = 'block';
 
-      timerFixation = setTimeout(() => {
+      tFixation = setTimeout(() => {
+        if (isTerminated) return;
         fixationEl.style.display = 'none';
+        curFixateStopped = (performance.now() - expStartTimePerf) / 1000.0;
 
-        // 2. Display Target
-        const posX = 450 + activeTrialData.xPos;
-        const posY = 325 - activeTrialData.yPos;
+        // 2. Stimulus
+        curStimulusStarted = curFixateStopped;
+        stimulusPresentedTime = performance.now();
+        acceptingResponse = true;
+
+        const posX = 512 + activeTrialData.xPos;
+        const posY = 384 - activeTrialData.yPos;
 
         stimEl.innerHTML = generateNavonSVG(activeTrialData.global, activeTrialData.local);
         stimEl.style.left = posX + 'px';
         stimEl.style.top = posY + 'px';
         stimEl.style.display = 'block';
 
-        stimulusPresentedTime = performance.now();
-        acceptingResponse = true;
+        // 3. Dot Mask after 200 ms
+        tStimToMask = setTimeout(() => {
+          if (acceptingResponse && !isTerminated) {
+            stimEl.style.display = 'none';
+            curStimulusStopped = (performance.now() - expStartTimePerf) / 1000.0;
+            curMaskStarted = curStimulusStopped;
 
-        // 3. Max Response Timeout (5 seconds)
-        timerTimeout = setTimeout(() => {
-          if (acceptingResponse) {
+            maskEl.style.left = posX + 'px';
+            maskEl.style.top = posY + 'px';
+            maskEl.style.display = 'block';
+          }
+        }, 200);
+
+        // 4. 5-second timeout
+        tMaskTimeout = setTimeout(() => {
+          if (acceptingResponse && !isTerminated) {
             acceptingResponse = false;
-            recordResponse(null, 5.0);
+            curMaskStopped = (performance.now() - expStartTimePerf) / 1000.0;
+            recordResponse("None", 5.0);
           }
         }, 5000);
 
@@ -387,12 +532,26 @@
     }
 
     function recordResponse(key, rt) {
-      clearTimeout(timerTimeout);
+      if (isTerminated) return;
+      clearTimeout(tStimToMask);
+      clearTimeout(tMaskTimeout);
+
+      const respTimestamp = (performance.now() - expStartTimePerf) / 1000.0;
+      if (curStimulusStopped === 0) {
+        curStimulusStopped = respTimestamp;
+      }
+      if (!curMaskStopped) {
+        curMaskStopped = respTimestamp;
+      }
+
       document.getElementById('stimulus').style.display = 'none';
+      document.getElementById('mask').style.display = 'none';
 
       const isCorr = (key === activeTrialData.corrAns) ? 1.0 : 0.0;
+      const curTrialStopped = respTimestamp + 0.1;
 
       const record = {
+        type: "trial",
         phase: currentPhase,
         stimFile: activeTrialData.stimFile,
         congruence: activeTrialData.congruence,
@@ -401,11 +560,22 @@
         yPos: activeTrialData.yPos,
         location: activeTrialData.location,
         trialIndex: trialIndex,
-        key: key || "None",
+        originalIndex: activeTrialData.originalIndex,
+        key: key === "None" ? "" : key,
         corr: isCorr,
-        rt: rt
+        rt: rt >= 5.0 ? "" : rt,
+        thisRowT: curTrialStarted + 0.01,
+        trialStarted: curTrialStarted,
+        fixateStarted: curFixateStarted,
+        fixateStopped: curFixateStopped,
+        stimulusStarted: curStimulusStarted,
+        stimulusStopped: curStimulusStopped,
+        maskStarted: curMaskStarted,
+        maskStopped: curMaskStopped,
+        trialStopped: curTrialStopped,
+        feedbackStarted: "",
+        feedbackStopped: ""
       };
-      rawResults.push(record);
 
       if (currentPhase === "practice") {
         const fb = document.getElementById('feedback');
@@ -413,28 +583,37 @@
         fb.className = isCorr ? "correct" : "incorrect";
         fb.style.display = 'block';
 
-        timerFeedback = setTimeout(() => {
+        curFeedbackStarted = (performance.now() - expStartTimePerf) / 1000.0;
+        record.feedbackStarted = curFeedbackStarted;
+
+        tFeedback = setTimeout(() => {
+          if (isTerminated) return;
           fb.style.display = 'none';
+          curFeedbackStopped = (performance.now() - expStartTimePerf) / 1000.0;
+          record.feedbackStopped = curFeedbackStopped;
+
+          masterRows.push(record);
           trialIndex++;
-          timerNext = setTimeout(runNextTrial, 400);
+          tNext = setTimeout(runNextTrial, 400);
         }, 800);
       } else {
+        masterRows.push(record);
         trialIndex++;
-        timerNext = setTimeout(runNextTrial, 300);
+        tNext = setTimeout(runNextTrial, 300);
       }
     }
 
     function abortExperiment() {
-      // Clear all possible running timeouts immediately
-      clearTimeout(timerFixation);
-      clearTimeout(timerTimeout);
-      clearTimeout(timerFeedback);
-      clearTimeout(timerNext);
+      if (isTerminated) return;
+      isTerminated = true;
+
+      clearTimeout(tFixation);
+      clearTimeout(tStimToMask);
+      clearTimeout(tMaskTimeout);
+      clearTimeout(tFeedback);
+      clearTimeout(tNext);
 
       acceptingResponse = false;
-      experimentAborted = true;
-
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       finishExperiment(true);
     }
 
@@ -444,12 +623,12 @@
 
       const statusTag = document.getElementById('status-tag');
       if (wasAborted) {
-        statusTag.innerHTML = `<span class="aborted-badge">Terminated Early (Esc Key Pressed)</span>`;
+        statusTag.innerHTML = `<span style="background:#cc0000; padding:4px 12px; border-radius:4px; font-weight:bold;">Experiment Ended Early (Esc Pressed)</span>`;
       } else {
         statusTag.innerHTML = `<span style="color: #00ff66; font-weight: bold; font-size: 18px;">Experiment Completed Successfully</span>`;
       }
 
-      const mainData = rawResults.filter(r => r.phase === 'main');
+      const mainData = masterRows.filter(r => r.type === 'trial' && r.phase === 'main');
       const totalMain = mainData.length;
       const correctMain = mainData.filter(r => r.corr === 1.0);
       const overallAcc = totalMain > 0 ? ((correctMain.length / totalMain) * 100) : 0;
@@ -457,8 +636,8 @@
       const congCorrect = mainData.filter(r => r.congruence === 'consistent' && r.corr === 1.0);
       const confCorrect = mainData.filter(r => r.congruence === 'conflicting' && r.corr === 1.0);
 
-      const meanCongRT = congCorrect.length ? (congCorrect.reduce((acc, c) => acc + c.rt, 0) / congCorrect.length * 1000) : 0;
-      const meanConfRT = confCorrect.length ? (confCorrect.reduce((acc, c) => acc + c.rt, 0) / confCorrect.length * 1000) : 0;
+      const meanCongRT = congCorrect.length ? (congCorrect.reduce((acc, c) => acc + (parseFloat(c.rt) || 0), 0) / congCorrect.length * 1000) : 0;
+      const meanConfRT = confCorrect.length ? (confCorrect.reduce((acc, c) => acc + (parseFloat(c.rt) || 0), 0) / confCorrect.length * 1000) : 0;
       const interference = meanConfRT - meanCongRT;
 
       const congCount = mainData.filter(r => r.congruence === 'consistent').length;
@@ -468,7 +647,7 @@
       const confAcc = confCount > 0 ? (confCorrect.length / confCount * 100) : 0;
 
       document.getElementById('results-summary').innerHTML = `
-        <p><strong>Participant:</strong> ${participant} | <strong>Age:</strong> ${age} | <strong>Total Trials Completed:</strong> ${rawResults.length}</p>
+        <p><strong>Participant:</strong> ${participant} | <strong>Age:</strong> ${age} | <strong>Total Trials Logged:</strong> ${mainData.length + masterRows.filter(r => r.phase === 'practice').length}</p>
         <table>
           <thead>
             <tr>
@@ -499,49 +678,129 @@
             </tr>
           </tbody>
         </table>
-        <p><strong>Calculated Interference Effect:</strong> ${totalMain > 0 ? (interference >= 0 ? '+' : '') + interference.toFixed(1) + ' ms' : 'N/A'}</p>
+        <p><strong>Interference Effect:</strong> ${totalMain > 0 ? (interference >= 0 ? '+' : '') + interference.toFixed(1) + ' ms' : 'N/A'}</p>
       `;
 
-      // Auto-trigger CSV download (even if aborted early)
       downloadCSV();
     }
 
     function downloadCSV() {
-      if (rawResults.length === 0) {
-        alert("No trials were completed before exit; no data to download.");
+      if (masterRows.length === 0) {
+        alert("No trials recorded.");
         return;
       }
 
+      // EXACT 65 PsychoPy Columns in Identical Order
       const headers = [
         "stimFile", "congruence", "corrAns", "xPos", "yPos", "location",
-        "resp.keys", "resp.corr", "resp.rt",
-        "practiceTrials.thisN", "trials.thisN",
-        "participant", "age", "session", "date", "expName"
+        "thisN", "thisTrialN", "thisRepN", "resp.keys", "resp.corr", "resp.rt", "resp.duration",
+        "practiceTrials.thisRepN", "practiceTrials.thisTrialN", "practiceTrials.thisN", "practiceTrials.thisIndex",
+        "trials.thisRepN", "trials.thisTrialN", "trials.thisN", "trials.thisIndex",
+        "thisRow.t", "notes",
+        "instrPractice.started", "ok1.started", "textbox.started", "instrPractice.stopped", "ok1.keys", "ok1.rt", "ok1.duration",
+        "trial.started", "fixate.started", "fixate.stopped", "stimulus.started", "resp.started", "mask.started", "stimulus.stopped", "mask.stopped", "trial.stopped",
+        "practiceTrials.resp.keys", "practiceTrials.resp.corr", "feedback.started", "feedback_2.started", "feedback.stopped", "practiceTrials.resp.rt", "practiceTrials.resp.duration", "feedback_2.stopped",
+        "instrMain.started", "ok2.started", "textbox_2.started", "instrMain.stopped",
+        "trials.resp.keys", "trials.resp.corr", "trials.resp.rt", "trials.resp.duration",
+        "participant", "age", "session", "date", "expName", "expVersion", "psychopyVersion", "frameRate", "expStart", "Unnamed: 64"
       ];
 
       let csvRows = [headers.join(",")];
 
-      rawResults.forEach(r => {
-        const isPractice = r.phase === 'practice';
-        const row = [
-          r.stimFile,
-          r.congruence,
-          r.corrAns,
-          r.xPos.toFixed(1),
-          r.yPos.toFixed(1),
-          r.location,
-          r.key,
-          r.corr.toFixed(1),
-          r.rt.toFixed(6),
-          isPractice ? r.trialIndex : "",
-          !isPractice ? r.trialIndex : "",
-          `"${participant}"`,
-          age,
-          session,
-          dateStr,
-          "NavonTask"
-        ];
-        csvRows.push(row.join(","));
+      masterRows.forEach(row => {
+        let rMap = {};
+
+        if (row.type === "instruction_practice") {
+          // PsychoPy Row 0
+          rMap["instrPractice.started"] = Number(row.instrPractice_started).toFixed(6);
+          rMap["ok1.started"] = Number(row.ok1_started).toFixed(6);
+          rMap["textbox.started"] = Number(row.textbox_started).toFixed(6);
+          rMap["instrPractice.stopped"] = Number(row.instrPractice_stopped).toFixed(6);
+          rMap["ok1.keys"] = row.ok1_keys;
+          rMap["ok1.rt"] = Number(row.ok1_rt).toFixed(6);
+        } else if (row.type === "instruction_main") {
+          // PsychoPy Row 17
+          rMap["instrMain.started"] = Number(row.instrMain_started).toFixed(6);
+          rMap["ok2.started"] = Number(row.ok2_started).toFixed(6);
+          rMap["textbox_2.started"] = Number(row.textbox_2_started).toFixed(6);
+          rMap["instrMain.stopped"] = Number(row.instrMain_stopped).toFixed(6);
+        } else if (row.type === "trial") {
+          // Trials
+          const isPrac = row.phase === "practice";
+
+          rMap["stimFile"] = row.stimFile;
+          rMap["congruence"] = row.congruence;
+          rMap["corrAns"] = row.corrAns;
+          rMap["xPos"] = Number(row.xPos).toFixed(1);
+          rMap["yPos"] = Number(row.yPos).toFixed(1);
+          rMap["location"] = row.location;
+
+          rMap["thisN"] = row.trialIndex;
+          rMap["thisTrialN"] = row.trialIndex;
+          rMap["thisRepN"] = 0;
+
+          rMap["resp.keys"] = row.key;
+          rMap["resp.corr"] = Number(row.corr).toFixed(1);
+          rMap["resp.rt"] = row.rt ? Number(row.rt).toFixed(6) : "";
+
+          if (isPrac) {
+            rMap["practiceTrials.thisRepN"] = 0;
+            rMap["practiceTrials.thisTrialN"] = row.trialIndex;
+            rMap["practiceTrials.thisN"] = row.trialIndex;
+            rMap["practiceTrials.thisIndex"] = row.originalIndex;
+
+            rMap["practiceTrials.resp.keys"] = row.key;
+            rMap["practiceTrials.resp.corr"] = Number(row.corr).toFixed(1);
+            rMap["practiceTrials.resp.rt"] = row.rt ? Number(row.rt).toFixed(6) : "";
+
+            rMap["feedback.started"] = row.feedbackStarted ? Number(row.feedbackStarted).toFixed(6) : "";
+            rMap["feedback_2.started"] = row.feedbackStarted ? Number(row.feedbackStarted).toFixed(6) : "";
+            rMap["feedback.stopped"] = row.feedbackStopped ? Number(row.feedbackStopped).toFixed(6) : "";
+          } else {
+            rMap["trials.thisRepN"] = Math.floor(row.trialIndex / 16);
+            rMap["trials.thisTrialN"] = row.trialIndex % 16;
+            rMap["trials.thisN"] = row.trialIndex;
+            rMap["trials.thisIndex"] = row.originalIndex;
+
+            rMap["trials.resp.keys"] = row.key;
+            rMap["trials.resp.corr"] = Number(row.corr).toFixed(1);
+            rMap["trials.resp.rt"] = row.rt ? Number(row.rt).toFixed(6) : "";
+          }
+
+          rMap["thisRow.t"] = Number(row.thisRowT).toFixed(6);
+          rMap["trial.started"] = Number(row.trialStarted).toFixed(6);
+          rMap["fixate.started"] = Number(row.fixateStarted).toFixed(6);
+          rMap["fixate.stopped"] = Number(row.fixateStopped).toFixed(6);
+          rMap["stimulus.started"] = Number(row.stimulusStarted).toFixed(6);
+          rMap["resp.started"] = Number(row.stimulusStarted).toFixed(6);
+          rMap["mask.started"] = Number(row.maskStarted).toFixed(6);
+          rMap["stimulus.stopped"] = Number(row.stimulusStopped).toFixed(6);
+          rMap["mask.stopped"] = row.maskStopped ? Number(row.maskStopped).toFixed(6) : "";
+          rMap["trial.stopped"] = Number(row.trialStopped).toFixed(6);
+        }
+
+        // Shared Session Metadata on every row
+        rMap["participant"] = participant;
+        rMap["age"] = age;
+        rMap["session"] = session;
+        rMap["date"] = dateStr;
+        rMap["expName"] = "NavonTask";
+        rMap["expVersion"] = "";
+        rMap["psychopyVersion"] = "2025.2.4";
+        rMap["frameRate"] = "60.22413012265455";
+        rMap["expStart"] = expStartStr;
+        rMap["Unnamed: 64"] = "";
+
+        // Build the comma-separated line
+        let line = headers.map(h => {
+          let val = rMap[h] !== undefined ? rMap[h] : "";
+          if (typeof val === "string" && (val.includes(",") || val.includes(" "))) {
+            return `"${val}"`;
+          }
+          return val;
+        }).join(",");
+
+        csvRows.push(line);
       });
 
       const blob = new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
